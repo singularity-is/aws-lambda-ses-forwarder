@@ -1,6 +1,6 @@
 {
-  "name": "aws-lambda-ses-forwarder",
-  "version": "5.0.0",
+  "name": "lambda-ses-forwarder",
+  "version": "1.0.1",
   "description": "Serverless email forwarding using AWS Lambda and SES",
   "main": "index.js",
   "scripts": {
@@ -23,17 +23,19 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/arithmetric/aws-lambda-ses-forwarder.git"
+    "url": "git+https://github.com/singularity-is/aws-lambda-ses-forwarder.git"
   },
   "keywords": [
     "aws",
+    "ses",
     "email",
-    "lambda"
+    "lambda",
+    "forward"
   ],
-  "author": "Joe Turgeon <arithmetric@gmail.com>",
+  "author": "Nikola Radovic <dzona065@gmail.com>",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/arithmetric/aws-lambda-ses-forwarder/issues"
+    "url": "https://github.com/singularity-is/aws-lambda-ses-forwarder/issues"
   },
-  "homepage": "https://github.com/arithmetric/aws-lambda-ses-forwarder#readme"
+  "homepage": "https://github.com/singularity-is/aws-lambda-ses-forwarder#readme"
 }

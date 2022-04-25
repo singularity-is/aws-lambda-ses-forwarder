@@ -133,16 +133,9 @@ exports.transformRecipients = function (data) {
   });
 
   if (!newRecipients.length) {
-    data.log({
-      level: "info",
-      message: "Finishing process. No new recipients found for original destinations: " + data.originalRecipients.join(", ")
-    });
-    data.shouldForward = false;
-
-    return Promise.resolve(data);
+    return Promise.reject("Finishing process. No new recipients found for original destinations: " + data.originalRecipients.join(", "));
   }
 
-  data.shouldForward = true;
   data.recipients = newRecipients;
 
   return Promise.resolve(data);
@@ -156,10 +149,6 @@ exports.transformRecipients = function (data) {
  * @return {object} - Promise resolved with data.
  */
 exports.fetchMessage = function (data) {
-  if (!data.shouldForward) {
-    return Promise.resolve(data);
-  }
-
   data.log({
     level: "info",
     message: "Fetching email at s3://" + data.config.emailBucket + '/' + data.email.messageId
@@ -196,10 +185,6 @@ exports.fetchMessage = function (data) {
  * @return {object} - Promise resolved with data.
  */
 exports.prepareMessage = function (data) {
-  if (!data.shouldForward) {
-    return Promise.resolve(data);
-  }
-
   var match = data.emailData.match(/^((?:.+\r?\n)*)(\r?\n(?:.*\s+)*)/m);
   var header = match && match[1] ? match[1] : data.emailData;
   var body = match && match[2] ? match[2] : '';
@@ -282,10 +267,6 @@ exports.prepareMessage = function (data) {
  * @return {object} - Promise resolved with data.
  */
 exports.sendMessage = function (data) {
-  if (!data.shouldForward) {
-    return Promise.resolve(data);
-  }
-
   var params = {
     Destinations: data.recipients,
     Source: data.originalRecipient,
@@ -328,10 +309,6 @@ exports.sendMessage = function (data) {
  * @return {object} - Promise resolved with data.
  */
 exports.deleteMessage = function (data) {
-  if (!data.shouldForward) {
-    return Promise.resolve(data);
-  }
-
   // Removing email object to processed directory
   data.log({
     level: "info",

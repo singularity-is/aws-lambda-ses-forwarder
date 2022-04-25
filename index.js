@@ -2,7 +2,7 @@
 
 var AWS = require('aws-sdk');
 
-console.log("AWS Lambda SES Forwarder // @singularity-is // Version 1.0.0");
+console.log("AWS Lambda SES Forwarder // @singularity-is // Version 1.0.1");
 
 // Configure the S3 bucket and key prefix for stored raw emails, and the
 // mapping of email addresses to forward from and to.
@@ -328,14 +328,37 @@ exports.sendMessage = function (data) {
  * @return {object} - Promise resolved with data.
  */
 exports.deleteMessage = function (data) {
-  // Removing email object to ensure only emails related to this forwarder are in bucket
+  if (!data.shouldForward) {
+    return Promise.resolve(data);
+  }
+
+  // Removing email object to processed directory
   data.log({
     level: "info",
     message: "Removing email at s3://" + data.config.emailBucket + '/' + data.email.messageId
   });
 
   return new Promise(function (resolve, reject) {
-    if (!data.shouldForward) {
+    // Make raw email copy to processed folder
+    data.s3.copyObject({
+      Bucket: data.config.emailBucket,
+      CopySource: data.config.emailBucket + '/' + data.email.messageId,
+      Key: data.config.processedEmailDirectory + '/' + data.email.messageId,
+      ACL: 'private',
+      ContentType: 'text/plain',
+      StorageClass: 'STANDARD'
+    }, function (err) {
+      if (err) {
+        data.log({
+          level: "error",
+          message: "copyObject() returned error:",
+          error: err,
+          stack: err.stack
+        });
+
+        return reject(new Error("Error: Could not make readable copy to processed destination."));
+      }
+
       // Remove raw email from original location
       data.s3.deleteObject({
         Bucket: data.config.emailBucket,
@@ -348,6 +371,7 @@ exports.deleteMessage = function (data) {
             error: err,
             stack: err.stack
           });
+
           return reject(new Error("Error: Failed to remove message body from S3."));
         }
 
@@ -358,52 +382,7 @@ exports.deleteMessage = function (data) {
 
         return resolve(data);
       });
-    } else {
-      // Make raw email copy to processed folder
-      data.s3.copyObject({
-        Bucket: data.config.emailBucket,
-        CopySource: data.config.emailBucket + '/' + data.email.messageId,
-        Key: data.config.processedEmailDirectory + '/' + data.email.messageId,
-        ACL: 'private',
-        ContentType: 'text/plain',
-        StorageClass: 'STANDARD'
-      }, function (err) {
-        if (err) {
-          data.log({
-            level: "error",
-            message: "copyObject() returned error:",
-            error: err,
-            stack: err.stack
-          });
-
-          return reject(new Error("Error: Could not make readable copy to processed destination."));
-        }
-
-        // Remove raw email from original location
-        data.s3.deleteObject({
-          Bucket: data.config.emailBucket,
-          Key: data.email.messageId
-        }, function (err, result) {
-          if (err) {
-            data.log({
-              level: "error",
-              message: "deleteObject() returned error:",
-              error: err,
-              stack: err.stack
-            });
-
-            return reject(new Error("Error: Failed to remove message body from S3."));
-          }
-
-          data.log({
-            level: "info",
-            message: "Original message removed: " + data.email.messageId
-          });
-
-          return resolve(data);
-        });
-      });
-    }
+    });
   });
 };
 

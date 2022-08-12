@@ -36,6 +36,7 @@ console.log("AWS Lambda SES Forwarder // @singularity-is // Version 1.0.1");
 //
 //   To match all email addresses matching no other mapping, use "@" as a key.
 var defaultConfig = {
+  region: "",
   fromEmail: "noreply@example.com",
   subjectPrefix: "",
   emailBucket: "s3-email-bucket",
@@ -388,7 +389,7 @@ exports.handler = function (event, context, callback, overrides) {
     context: context,
     config: overrides && overrides.config ? overrides.config : defaultConfig,
     log: overrides && overrides.log ? overrides.log : console.log,
-    ses: overrides && overrides.ses ? overrides.ses : new AWS.SES(),
+    ses: overrides && overrides.ses ? overrides.ses : new AWS.SES({ region: overrides && overrides.config ? overrides.config.region || defaultConfig.region : defaultConfig.region }),
     s3: overrides && overrides.s3 ? overrides.s3 : new AWS.S3({ signatureVersion: 'v4' })
   };
   Promise.series(steps, data)

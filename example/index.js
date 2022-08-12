@@ -5,6 +5,7 @@ exports.handler = function(event, context, callback) {
   // See aws-lambda-ses-forwarder/index.js for all options.
   var overrides = {
     config: {
+      region: "us-east-1",
       fromEmail: "noreply@example.com",
       emailBucket: "s3-bucket-name",
       emailKeyPrefix: "emailsPrefix/",
